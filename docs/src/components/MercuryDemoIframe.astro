@@ -34,13 +34,9 @@ const cloudUrl = "https://platform.mljar.com";
       </a>
     )}
     {showOpenLink && (
-      <a href={openDemoUrl} target="_blank" rel="noopener noreferrer" class="mercury-demo__link">
-        Open demo in new tab
-      </a>
-    )}
-    <a href={cloudUrl} target="_blank" rel="noreferrer" class="mercury-demo__link mercury-demo__cloud-link">
-      ⛅ Mercury Cloud
-    </a>
+    <a href={openDemoUrl} target="_blank" rel="noreferrer" class="mercury-demo__link mercury-demo__cloud-link">
+      ⛅ Open demo in new tab
+    </a>)}
   </div>
 </div>
 
@@ -91,7 +87,7 @@ const cloudUrl = "https://platform.mljar.com";
   .mercury-demo__viewport {
     height: var(--demo-height);
     width: 100%;
-    position: relative; 
+    position: relative;
   }
 
   /* Placeholder fills viewport */
