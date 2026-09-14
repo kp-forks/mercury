@@ -14,15 +14,12 @@ class NotebooksAPIHandler(JupyterHandler):
     def get(self):
         base = self.settings.get("base_url", "") or ""
 
-        # Defaults come from settings; both are optional.
+        # Match RootIndexHandler: only server settings define the listing scope.
+        # This endpoint is public in anonymous deployments, so request parameters
+        # must never select a filesystem root or enable recursive discovery.
         notebooks_dir = self.settings.get("notebooks_dir", os.getcwd())
         url_prefix = "mercury/"
-
-        # Allow overriding via query params (optional)
-        q_dir = self.get_argument("dir", default=None)
-        if q_dir:
-            notebooks_dir = q_dir
-        recursive = self.get_argument("recursive", default="0") in {"1", "true", "True"}
+        recursive = bool(self.settings.get("notebooks_recursive", False))
 
         if not os.path.isdir(notebooks_dir):
             self.set_status(400)
