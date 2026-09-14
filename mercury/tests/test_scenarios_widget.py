@@ -179,6 +179,32 @@ def test_polars_table():
     assert saved["rows"] == [["Jan", 100], ["Feb", 200]]
 
 
+@pytest.mark.parametrize("module", ["pandas", "pandas.core.frame"])
+def test_pandas_dataframe_module_does_not_affect_serialization(monkeypatch, module):
+    pd = pytest.importorskip("pandas")
+    monkeypatch.setattr(pd.DataFrame, "__module__", module)
+    assert _output(pd.DataFrame({"value": [42]}))["rows"] == [[42]]
+    with pytest.raises(ValueError, match="limited"):
+        _output(pd.DataFrame({"value": range(5001)}))
+
+
+def test_pandas_dataframe_subclass():
+    pd = pytest.importorskip("pandas")
+
+    class Forecast(pd.DataFrame):
+        pass
+
+    saved = _output(Forecast({"value": [42]}, index=["January"]))
+    assert saved["rows"] == [[42]]
+    assert saved["index"] == ["January"]
+
+
+def test_dataframe_name_alone_is_not_accepted():
+    fake = type("DataFrame", (), {"__module__": "pandas"})
+    with pytest.raises(ValueError, match="Unsupported"):
+        _output(fake())
+
+
 def test_matplotlib_figure_and_axes_are_png_snapshots():
     pytest.importorskip("matplotlib")
     from matplotlib.figure import Figure

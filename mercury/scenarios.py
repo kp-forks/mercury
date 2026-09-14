@@ -6,6 +6,7 @@ import io
 import json
 import math
 import numbers
+import sys
 from collections.abc import Mapping
 from datetime import date, datetime, timezone
 from pathlib import Path
@@ -54,16 +55,18 @@ def _scalar(value):
 
 def _output(value):
     module = type(value).__module__
-    if (
-        module.startswith(("pandas.", "polars."))
-        and type(value).__name__ == "DataFrame"
-    ):
+    # A DataFrame's library is already loaded if an instance exists. Looking up
+    # its public class keeps Polars optional and avoids relying on __module__,
+    # which changed from pandas.core.frame to pandas in pandas 3.
+    pandas_type = getattr(sys.modules.get("pandas"), "DataFrame", ())
+    polars_type = getattr(sys.modules.get("polars"), "DataFrame", ())
+    is_pandas = isinstance(value, pandas_type)
+    if is_pandas or isinstance(value, polars_type):
         rows, columns = value.shape
         if rows > MAX_ROWS or columns > MAX_COLUMNS:
             raise ValueError(
                 f"Tables are limited to {MAX_ROWS:,} rows and {MAX_COLUMNS} columns."
             )
-        is_pandas = module.startswith("pandas.")
         data = (
             value.itertuples(index=False, name=None) if is_pandas else value.iter_rows()
         )
